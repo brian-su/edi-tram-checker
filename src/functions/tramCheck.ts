@@ -25,11 +25,11 @@ export async function tramCheck(request: HttpRequest, context: InvocationContext
 	const tramUrl = `https://edinburghtrams.com/api/stop/${closestStop.id}`;
 	const tramResponse = (await axios.get<TramResponse>(tramUrl)).data;
 
-	if ((tramResponse.busTimes.length = 0)) return { body: `Tram times for ${closestStop.name} are currently unavailable` };
+	if (tramResponse.busTimes.length === 0) return { body: `Tram times for ${closestStop.name} are currently unavailable` };
 
 	const toReturn = tramResponse.busTimes.map((x) => {
 		const times = x.timeDatas.map((t) => {
-			return { time: t.time, mins: t.minutes };
+			return { time: t.time, minutes: t.minutes };
 		});
 		return {
 			name: closestStop.name,

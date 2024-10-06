@@ -23,33 +23,37 @@ export async function tramCheck(request: HttpRequest, context: InvocationContext
 		.sort((a, b) => a.distance - b.distance)[0];
 
 	const tramUrl = `https://edinburghtrams.com/api/stop/${closestStop.id}`;
-	let response: AxiosResponse<TramResponse, any>;
 
-	try {
-		response = await axios.get<TramResponse>(tramUrl);
-	} catch (error) {
-		return { jsonBody: error };
-	}
-	const responseData = response.data;
+	return { jsonBody: tramUrl };
 
-	if (responseData.busTimes.length === 0) return { body: `Tram times for ${closestStop.name} are currently unavailable` };
+	// TODO: One day work out how to get around the Tram Api returning a 403
+	// let response: AxiosResponse<TramResponse, any>;
 
-	const toReturn = responseData.busTimes.map((x) => {
-		const times = x.timeDatas.map((t) => {
-			return { time: t.time, minutes: t.minutes };
-		});
-		return {
-			name: closestStop.name,
-			times: times,
-			// Not 100% when these apply tbh
-			globalDisruption: x.globalDisruption,
-			serviceDisruption: x.serviceDisruption,
-			busStopDisruption: x.busStopDisruption,
-			serviceDiversion: x.serviceDiversion
-		};
-	});
+	// try {
+	// 	response = await axios.get<TramResponse>(tramUrl);
+	// } catch (error) {
+	// 	return { jsonBody: error };
+	// }
+	// const responseData = response.data;
 
-	return { jsonBody: toReturn };
+	// if (responseData.busTimes.length === 0) return { body: `Tram times for ${closestStop.name} are currently unavailable` };
+
+	// const toReturn = responseData.busTimes.map((x) => {
+	// 	const times = x.timeDatas.map((t) => {
+	// 		return { time: t.time, minutes: t.minutes };
+	// 	});
+	// 	return {
+	// 		name: closestStop.name,
+	// 		times: times,
+	// 		// Not 100% when these apply tbh
+	// 		globalDisruption: x.globalDisruption,
+	// 		serviceDisruption: x.serviceDisruption,
+	// 		busStopDisruption: x.busStopDisruption,
+	// 		serviceDiversion: x.serviceDiversion
+	// 	};
+	// });
+
+	// return { jsonBody: toReturn };
 }
 
 app.http('tramCheck', {

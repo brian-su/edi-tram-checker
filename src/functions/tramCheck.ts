@@ -1,6 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { tramDetails } from './tramStops';
-import axios from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { TramResponse } from './tramResponses';
 
 export async function tramCheck(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
@@ -23,30 +23,41 @@ export async function tramCheck(request: HttpRequest, context: InvocationContext
 		.sort((a, b) => a.distance - b.distance)[0];
 
 	const tramUrl = `https://edinburghtrams.com/api/stop/${closestStop.id}`;
-	const tramResponse = (await axios.get<TramResponse>(tramUrl)).data;
 
-	if (tramResponse.busTimes.length === 0) return { body: `Tram times for ${closestStop.name} are currently unavailable` };
+	return { jsonBody: tramUrl };
 
-	const toReturn = tramResponse.busTimes.map((x) => {
-		const times = x.timeDatas.map((t) => {
-			return { time: t.time, minutes: t.minutes };
-		});
-		return {
-			name: closestStop.name,
-			times: times,
-			// Not 100% when these apply tbh
-			globalDisruption: x.globalDisruption,
-			serviceDisruption: x.serviceDisruption,
-			busStopDisruption: x.busStopDisruption,
-			serviceDiversion: x.serviceDiversion
-		};
-	});
+	// TODO: One day work out how to get around the Tram Api returning a 403
+	// let response: AxiosResponse<TramResponse, any>;
 
-	return { jsonBody: toReturn };
+	// try {
+	// 	response = await axios.get<TramResponse>(tramUrl);
+	// } catch (error) {
+	// 	return { jsonBody: error };
+	// }
+	// const responseData = response.data;
+
+	// if (responseData.busTimes.length === 0) return { body: `Tram times for ${closestStop.name} are currently unavailable` };
+
+	// const toReturn = responseData.busTimes.map((x) => {
+	// 	const times = x.timeDatas.map((t) => {
+	// 		return { time: t.time, minutes: t.minutes };
+	// 	});
+	// 	return {
+	// 		name: closestStop.name,
+	// 		times: times,
+	// 		// Not 100% when these apply tbh
+	// 		globalDisruption: x.globalDisruption,
+	// 		serviceDisruption: x.serviceDisruption,
+	// 		busStopDisruption: x.busStopDisruption,
+	// 		serviceDiversion: x.serviceDiversion
+	// 	};
+	// });
+
+	// return { jsonBody: toReturn };
 }
 
 app.http('tramCheck', {
-	methods: ['GET', 'POST'],
+	methods: ['GET'],
 	authLevel: 'anonymous',
 	handler: tramCheck
 });
